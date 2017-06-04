@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapy.selector import Selector
+import copy 
 from scrapy.linkextractors import LinkExtractor
 import logging 
 log = logging.getLogger()
@@ -64,11 +65,13 @@ class SbtSpider(scrapy.Spider):
     Extracts links of photos belonging to the vehicle
     """
     def parse_photos(self, response): 
-        log.debug('Getting photos for {0}'.format(vehicle.id))
-        
+
         vehicle_images = image_selector(response)
+        # TODO: deal with returning item instead of meta 
         vehicle = response.meta['vehicle']
+        log.debug('Getting photos for {0}'.format(vehicle.id))
+    
         photo_links = vehicle_images.get('images')
-        vehicle['images'] = photo_links
+        vehicle.images = photo_links
         yield vehicle
 
