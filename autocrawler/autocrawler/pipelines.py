@@ -15,8 +15,11 @@ class JsonPipeline(object):
         self.file = open('crawler_data.json', 'wb')
 
     def process_item(self,item, spider): 
-        # with open('crawler_data.json', 'w') as outfile: 
-        #     json.dump(dict(item)) + "\n")
-        line = json.dumps(dict(item)) + "\n"
-        self.file.write(line)
-        return item
+        print('PIPELINE ===> ')
+        print('data: '.format(item))
+        # # with open('crawler_data.json', 'w') as outfile: 
+        # #     json.dump(dict(item),sort_keys=True, indent=4)
+        # line = json.dumps(dict(item))
+        # self.file.write(line)
+        # return item
+        return item 

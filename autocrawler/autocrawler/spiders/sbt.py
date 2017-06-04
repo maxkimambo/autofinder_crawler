@@ -32,33 +32,33 @@ class SbtSpider(scrapy.Spider):
     def parse_product_detail(self, response): 
      
         sel = Selector(response=response)
-        vehicle = AutocrawlerItem
+        vehicle = AutocrawlerItem()
 
         vd = vehicle_selector(response)
-        vehicle.id = vd.get('id')
-        vehicle.vehicle_make = vd.get('make')
-        vehicle.vehicle_model = vd.get('model')
-        vehicle.vehicle_year = vd.get('year')
-        vehicle.vehicle_engine = vd.get('engine')
-        vehicle.vehicle_transmission = vd.get('transmission')
-        vehicle.vehicle_fuel = vd.get('fuel')
-        vehicle.vehicle_seats = vd.get('seats')
-        vehicle.vehicle_price_fob = vd.get('price_fob')
-        vehicle.vehicle_price_cif = vd.get('price_cif')
-        vehicle.vehicle_description = vd.get('description')
-        vehicle.vehicle_title = vd.get('title')
-        vehicle.vehicle_drive = vd.get('wheel_drive')
-        vehicle.vehicle_steering = vd.get('steering')
-        vehicle.vehicle_color = vd.get('color')
-        vehicle.vehicle_doors = vd.get('doors')
-        vehicle.vehicle_body = vd.get('body')
-        vehicle.vehicle_mileage = vd.get('mileage')
-        vehicle.vehicle_accessories = vd.get('accessories')
+        vehicle['id'] = vd.get('id')
+        vehicle['vehicle_make'] = vd.get('make')
+        vehicle['vehicle_model'] = vd.get('model')
+        vehicle['vehicle_year'] = vd.get('year')
+        vehicle['vehicle_engine'] = vd.get('engine')
+        vehicle['vehicle_transmission'] = vd.get('transmission')
+        vehicle['vehicle_fuel'] = vd.get('fuel')
+        vehicle['vehicle_seats'] = vd.get('seats')
+        vehicle['vehicle_price_fob'] = vd.get('price_fob')
+        vehicle['vehicle_price_cif'] = vd.get('price_cif')
+        vehicle['vehicle_description'] = vd.get('description')
+        vehicle['vehicle_title'] = vd.get('title')
+        vehicle['vehicle_drive'] = vd.get('wheel_drive')
+        vehicle['vehicle_steering'] = vd.get('steering')
+        vehicle['vehicle_color'] = vd.get('color')
+        vehicle['vehicle_doors'] = vd.get('doors')
+        vehicle['vehicle_body'] = vd.get('body')
+        vehicle['vehicle_mileage'] = vd.get('mileage')
+        vehicle['vehicle_accessories'] = vd.get('accessories')
    
         log.debug('Vehicle images found at {0}'.format(vd.get('images')))
         request = scrapy.Request(vd.get('images') , self.parse_photos)
         #pass vehicle to the next response handler 
-        request.meta['vehicle'] = vehicle
+        request.meta['vehicle'] = {'data': vehicle}
         yield request
 
     """
@@ -68,10 +68,13 @@ class SbtSpider(scrapy.Spider):
 
         vehicle_images = image_selector(response)
         # TODO: deal with returning item instead of meta 
-        vehicle = response.meta['vehicle']
-        log.debug('Getting photos for {0}'.format(vehicle.id))
+        meta = response.meta['vehicle']
+        
+        vehicle = meta['data'] 
+        log.debug( type(vehicle))
+        log.debug('Getting photos for {0}'.format(vehicle['id']))
     
         photo_links = vehicle_images.get('images')
-        vehicle.images = photo_links
+        vehicle['vehicle_thumbnails'] = photo_links
         yield vehicle
 
