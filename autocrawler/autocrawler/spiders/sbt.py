@@ -5,6 +5,7 @@ from scrapy.linkextractors import LinkExtractor
 import logging 
 log = logging.getLogger()
 from autocrawler.items import AutocrawlerItem 
+from autocrawler.spiders.selectors.sbt_vehicle_details import sbt_vehicle_details_selectors as vehicle_selector
 
 class SbtSpider(scrapy.Spider):
     name = 'sbt'
@@ -32,9 +33,27 @@ class SbtSpider(scrapy.Spider):
         sel = Selector(response=response)
         vehicle = AutocrawlerItem
 
+        vd = vehicle_selector(response)
         log.debug('---------------')
-        log.debug('Vehicle Id: {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[1]/text()').extract()))
-        log.debug('Make {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/h1/text()').extract()))
+        vehicle.vehicle_ref_no = vd.data('id')
+        vehicle.vehicle_make = vd.data('make')
+        vehicle.vehicle_model = vd.data('model')
+        vehicle.vehicle_year = vd.data('year')
+        vehicle.vehicle_engine = vd.data('engine')
+        vehicle.vehicle_transmission = vd.data('transmission')
+        vehicle.vehicle_fuel = vd.data('fuel')
+        vehicle.vehicle_seats = vd.data('seats')
+        vehicle.vehicle_price_fob = vd.data('price_fob')
+        vehicle.vehicle_price_cif = vd.data('price_cif')
+        vehicle.vehicle_description = vd.data('description')
+        vehicle.Title = vd.data('title')
+        vehicle.vehicle_drive = vd.data('wheel_drive')
+        vehicle.vehicle_steering = vd.data('steering')
+        vehicle.vehicle_color = vd.data('color')
+        vehicle.vehicle_doors = vd.data('doors')
+        vehicle.vehicle_body = vd.data('body')
+        vehicle.vehicle_mileage = vd.data('mileage')
+
         log.debug('Model {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[2]/text()').extract()))
         log.debug('Year {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[1]/text()').extract()))
         log.debug('Engine {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[1]/text()').extract()))

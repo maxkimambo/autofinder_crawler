@@ -17,7 +17,7 @@ class AutocrawlerItem(scrapy.Item):
     vehicle_model = scrapy.Field()
     vehicle_year = scrapy.Field()
     vehicle_engine = scrapy.Field()
-    vehichle_transmission = scrapy.Field()
+    vehicle_transmission = scrapy.Field()
     vehicle_fuel = scrapy.Field()
     vehicle_price_fob = scrapy.Field()
     vehicle_price_cif = scrapy.Field()
