@@ -17,5 +17,5 @@ class VehicleImages:
            vehicle['images'].append(p.extract())
         return vehicle 
 
-    def data(self, item):
+    def get(self, item):
         return self.vehicle[item]

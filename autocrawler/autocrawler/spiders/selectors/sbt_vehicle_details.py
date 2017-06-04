@@ -1,22 +1,3 @@
-#   Vehicle Id: = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[1]/text()').extract()
-#         Make = self.sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/h1/text()').extract()
-#         Model = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[2]/text()').extract()
-#         Year = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[1]/text()').extract()
-#         Engine = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[1]/text()').extract()
-#         Transmission = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[3]/td[1]/text()').extract()
-#         Fuel  = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[9]/td[1]/text()').extract()
-#         Seats = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[2]/text()').extract()
-#         Price fob : = self.sel.xpath('//*[@id="fob"]/text()').extract()
-#         Price cif: {0}'.format('N/A'))
-#         Description = self.sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/p/text()').extract()
-#         Title = self.sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/h1/text()').extract()
-#         Drive  = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[4]/td[1]/text()').extract()
-#         Steering : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[1]/text()').extract()
-#         Color : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[3]/td[2]/text()').extract()
-#         Doors : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[4]/td[2]/text()').extract()
-#         Seats : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[2]/text()').extract()
-#         Body : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[6]/td[2]/text()').extract()
-#         Mileage : = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[2]/text()').extract()
 from scrapy.selector import Selector
 import logging 
 log = logging.getLogger()
@@ -66,5 +47,5 @@ class sbt_vehicle_details_selectors:
 
         return vehicle; 
     
-    def data(self, item):
+    def get(self, item):
         return self.vehicle[item][0]
