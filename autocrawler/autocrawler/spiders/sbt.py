@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger()
 from autocrawler.items import AutocrawlerItem 
 from autocrawler.spiders.selectors.sbt_vehicle_details import sbt_vehicle_details_selectors as vehicle_selector
-
+from autocrawler.spiders.selectors.sbt_vehicle_images import VehicleImages as image_selector
 class SbtSpider(scrapy.Spider):
     name = 'sbt'
     allowed_domains = ['sbtjapan.com']
@@ -34,8 +34,7 @@ class SbtSpider(scrapy.Spider):
         vehicle = AutocrawlerItem
 
         vd = vehicle_selector(response)
-        log.debug('---------------')
-        vehicle.vehicle_ref_no = vd.data('id')
+        vehicle.id = vd.data('id')
         vehicle.vehicle_make = vd.data('make')
         vehicle.vehicle_model = vd.data('model')
         vehicle.vehicle_year = vd.data('year')
@@ -53,50 +52,23 @@ class SbtSpider(scrapy.Spider):
         vehicle.vehicle_doors = vd.data('doors')
         vehicle.vehicle_body = vd.data('body')
         vehicle.vehicle_mileage = vd.data('mileage')
-
-        log.debug('Model {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[2]/text()').extract()))
-        log.debug('Year {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[1]/text()').extract()))
-        log.debug('Engine {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[1]/text()').extract()))
-        log.debug('Transmission {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[3]/td[1]/text()').extract()))
-        log.debug('Fuel  {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[9]/td[1]/text()').extract()))
-        log.debug('Seats {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[2]/text()').extract()))
-        log.debug('Price fob : {0}'.format(sel.xpath('//*[@id="fob"]/text()').extract()))
-        log.debug('Price cif: {0}'.format('N/A'))
-        log.debug('Description {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/p/text()').extract()))
-        log.debug('Title {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/h1/text()').extract()))
-        log.debug('Drive  {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[4]/td[1]/text()').extract()))
-        log.debug('Steering : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[1]/text()').extract()))
-        log.debug('Color : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[3]/td[2]/text()').extract()))
-        log.debug('Doors : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[4]/td[2]/text()').extract()))
-        log.debug('Seats : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[5]/td[2]/text()').extract()))
-        log.debug('Body : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[6]/td[2]/text()').extract()))
-        log.debug('Mileage : {0}'.format(sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[2]/text()').extract()))
-        
-        accesories_table = sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[3]/tbody')
-        for row in accesories_table.css('td:not(.back)'):
-            log.debug(row.extract())
-
-        #images 
-        photobox = sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[1]/div/p')
-        photobox_url = photobox.css('a:first-child::attr(href)').extract()
-       
-        log.debug('Vehicle images found at {0}'.format(photobox_url[0]))
-        request = scrapy.Request(photobox_url[0], self.parse_photos)
-        request.meta['vehicle_id'] = sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[1]/text()').extract()
+        vehicle.vehicle_accessories = vd.data('accessories')
+   
+        log.debug('Vehicle images found at {0}'.format(vd.data('images')))
+        request = scrapy.Request(vd.data('images') , self.parse_photos)
+        #pass vehicle to the next response handler 
+        request.meta['vehicle'] = vehicle
         yield request
 
     """
     Extracts links of photos belonging to the vehicle
     """
     def parse_photos(self, response): 
-       
-        log.debug('Getting photos for {0}'.format(response.meta['vehicle_id']))
-        sel = Selector(response=response)
+        log.debug('Getting photos for {0}'.format(vehicle.id))
+        
+        vehicle_images = image_selector(response)
+        vehicle = response.meta['vehicle']
+        photo_links = vehicle_images.data('images')
+        vehicle['images'] = photo_links
+        yield vehicle
 
-        photos = sel.xpath('//*[@id="container"]/div[2]/div')
-        photo_links = photos.css('a::attr(href)')
-
-        for p in photo_links: 
-            log.debug(p.extract())
-        pass 
-  

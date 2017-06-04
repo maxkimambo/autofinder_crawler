@@ -12,7 +12,7 @@ class AutocrawlerItem(scrapy.Item):
     # name = scrapy.Field()
     # Main scrapy.fields 
 
-    vehicle_ref_no = scrapy.Field()
+    id = scrapy.Field()
     vehicle_make = scrapy.Field()
     vehicle_model = scrapy.Field()
     vehicle_year = scrapy.Field()

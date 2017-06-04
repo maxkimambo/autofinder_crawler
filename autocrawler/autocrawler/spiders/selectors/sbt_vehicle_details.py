@@ -49,6 +49,21 @@ class sbt_vehicle_details_selectors:
         vehicle['doors'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[4]/td[2]/text()').extract()
         vehicle['body'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[6]/td[2]/text()').extract()
         vehicle['mileage'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[2]/text()').extract()
+        
+        # accessories 
+        accesories_table = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[3]/tbody')
+        accessories = []
+        for row in accesories_table.css('td:not(.back)'):
+            accessories.append(row.extract())
+        vehicle['accessories'] = accessories
+    
+        # images url 
+        photobox = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[1]/div/p')
+        photobox_url = photobox.css('a:first-child::attr(href)').extract()
+       
+        vehicle['images'] = photobox_url
+
+
         return vehicle; 
     
     def data(self, item):
