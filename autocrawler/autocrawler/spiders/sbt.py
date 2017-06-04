@@ -46,7 +46,7 @@ class SbtSpider(scrapy.Spider):
         vehicle.vehicle_price_fob = vd.get('price_fob')
         vehicle.vehicle_price_cif = vd.get('price_cif')
         vehicle.vehicle_description = vd.get('description')
-        vehicle.Title = vd.get('title')
+        vehicle.vehicle_title = vd.get('title')
         vehicle.vehicle_drive = vd.get('wheel_drive')
         vehicle.vehicle_steering = vd.get('steering')
         vehicle.vehicle_color = vd.get('color')
