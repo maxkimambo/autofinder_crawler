@@ -6,20 +6,28 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import json
+import logging
+log = logging.getLogger()
+from autocrawler.messagequeue.queue import Queue 
 class AutocrawlerPipeline(object):
     def process_item(self, item, spider):
         return item
 
-class JsonPipeline(object): 
+class MessageQueuePipeline(object): 
+   
     def __init__(self): 
-        self.file = open('crawler_data.json', 'wb')
+        self.queue = Queue()
 
-    def process_item(self,item, spider): 
-        print('PIPELINE ===> ')
-        print('data: '.format(item))
-        # # with open('crawler_data.json', 'w') as outfile: 
-        # #     json.dump(dict(item),sort_keys=True, indent=4)
-        # line = json.dumps(dict(item))
-        # self.file.write(line)
-        # return item
-        return item 
+    def spider_opened(self, spider): 
+        log.info('Spider opened')
+        pass
+       
+    def spider_closed(self, spider): 
+        # clean up the queues 
+        log.info('Spider closed')
+        # self.queue.disconnect()
+    
+    def process_item(self, item, spider): 
+        # log.debug('MessageQueuePipeline: item {0}'.format(json.dumps(dict(item))))
+        self.queue.publish(item)
+        return item

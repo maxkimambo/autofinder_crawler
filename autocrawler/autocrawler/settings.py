@@ -66,7 +66,7 @@ CONCURRENT_REQUESTS = 32
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'autocrawler.pipelines.AutocrawlerPipeline': 300,
-   'autocrawler.pipelines.JsonPipeline': 300
+   'autocrawler.pipelines.MessageQueuePipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
