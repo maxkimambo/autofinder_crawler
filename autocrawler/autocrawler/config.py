@@ -25,9 +25,9 @@ try:
 except KeyError:
     BROKER_VIRTUAL_HOST = '/' 
 params={
-    'exchange': '',
+    'exchange': 'crawler_exchange',
     'exchange_type': 'topic',
-    'routing_key': 'crawler',
+    'routing_key': 'crawler.*',
     'crawler_queue': 'crawler'
 }
 def get_url(): 

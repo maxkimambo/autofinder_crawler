@@ -24,19 +24,30 @@ class Queue(object):
         
 
     def initialise(self):
-        log.info('Initialising queues')
+        
+        log.info('[Queue] Initialising queues')
         url = config.get_url()
         params = pika.URLParameters(url)
         self._connection = pika.BlockingConnection(params)
+        log.info('[Queue] Connection established')
         self._channel = self._connection.channel()
-        self._channel.queue_declare(queue=self.QUEUE)
-        log.info('Initialisation complete')
+        log.info('[Queue] Channel created')
+        log.info('[Queue] Setting up Exchange %s of type %s', self.EXCHANGE, self.EXCHANGE_TYPE)
+        self._channel.exchange_declare(exchange=self.EXCHANGE, type=self.EXCHANGE_TYPE)
+        log.info('[Queue] Finished setting up Exchange %s of type %s', self.EXCHANGE, self.EXCHANGE_TYPE)
+        # self._channel.queue_declare(queue=self.QUEUE, durable=True, exclusive=False, auto_delete=False)
+        log.info('[Queue] Initialisation complete')
 
     def publish(self, message): 
-        log.info('Publishing a message')
-        self._channel.basic_publish(self.EXCHANGE,
-                                    self.ROUTING_KEY,
-                                    json.dumps(dict(message), ensure_ascii=False))
-        log.info('message sent')
+        
+        self._channel.basic_publish(exchange=self.EXCHANGE,
+                                    routing_key=self.ROUTING_KEY,
+                                    body=json.dumps(dict(message), ensure_ascii=False), 
+                                    properties=pika.BasicProperties(content_type='application/json',
+                                                         delivery_mode=1))
+    def disconnect(self): 
+        log.info('[Disconnect] Closing connection ')
+        self._connection.close()
+    
          
     
