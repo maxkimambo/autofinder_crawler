@@ -7,8 +7,12 @@
 
 import json
 import logging
-log = logging.getLogger()
-from autocrawler.messagequeue.queue import Queue 
+import sys
+
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
+log = logging.getLogger(__name__)
+from autocrawler.messagequeue.queue import MessageQueue 
 class AutocrawlerPipeline(object):
     def process_item(self, item, spider):
         return item
@@ -16,7 +20,7 @@ class AutocrawlerPipeline(object):
 class MessageQueuePipeline(object): 
    
     def __init__(self): 
-        self.queue = Queue()
+        self.queue = MessageQueue()
 
     def spider_opened(self, spider): 
         log.info('Spider opened')
@@ -28,6 +32,5 @@ class MessageQueuePipeline(object):
         # self.queue.disconnect()
     
     def process_item(self, item, spider): 
-        # log.debug('MessageQueuePipeline: item {0}'.format(json.dumps(dict(item))))
         self.queue.publish(item)
         return item
