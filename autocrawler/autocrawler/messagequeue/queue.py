@@ -1,53 +1,85 @@
-import autocrawler.config as config 
-import pika 
-import os 
+import pika
+import os
 import logging
 import json
+import sys
 
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
 log = logging.getLogger(__name__)
 
-class Queue(object): 
-    
-    EXCHANGE = config.params.get('exchange')
-    EXCHANGE_TYPE = config.params.get('exchange_type')
-    QUEUE = config.params.get('crawler_queue')
-    ROUTING_KEY = config.params.get('routing_key')
 
-    def __init__(self): 
-       
+class MessageQueue(object):
+    """
+    MessageQueue class connects and publishes messages to the broker 
+        :param object: 
+    """
+    EXCHANGE = os.getenv('EXCHANGE', 'crawler.vehicles')
+    QUEUE = os.getenv('QUEUE', 'crawler_queue')
+    EXCHANGE_TYPE = 'topic'
+
+    def __init__(self):
+
         self._connection = None
         self._channel = None
-        self._url = config.get_url()
+
         self._stopping = False
         self._closing = False
+        self._userId = os.getenv('BROKER_USERID', 'guest')
+        self._password = os.getenv('BROKER_PASSWORD', 'guest')
+        self._broker_host = os.getenv('BROKER_HOST', 'guest')
+        self._broker_port = os.getenv('BROKER_PORT', 5672)
+
         self.initialise()
-        
+
+    def get_url(self):
+        """
+        Generates connection string
+        """
+        url = 'amqp://{0}:{1}@{2}:{3}/%2F'.format(
+            self._userId, self._password, self._broker_host, self._broker_port)
+        return url
 
     def initialise(self):
-        
-        log.info('[Queue] Initialising queues')
-        url = config.get_url()
+        """
+        Initialises RabbitMQ connection and queues
+        """
+        log.info('---- Initialising queue ----')
+        url = self.get_url()
         params = pika.URLParameters(url)
         self._connection = pika.BlockingConnection(params)
-        log.info('[Queue] Connection established')
-        self._channel = self._connection.channel()
-        log.info('[Queue] Channel created')
-        log.info('[Queue] Setting up Exchange %s of type %s', self.EXCHANGE, self.EXCHANGE_TYPE)
-        self._channel.exchange_declare(exchange=self.EXCHANGE, type=self.EXCHANGE_TYPE)
-        log.info('[Queue] Finished setting up Exchange %s of type %s', self.EXCHANGE, self.EXCHANGE_TYPE)
-        # self._channel.queue_declare(queue=self.QUEUE, durable=True, exclusive=False, auto_delete=False)
-        log.info('[Queue] Initialisation complete')
+        log.info('Connection established')
 
-    def publish(self, message): 
-        
+        self._channel = self._connection.channel()
+        log.info('Channel created')
+
+        log.info('Setting up Exchange %s of type %s',
+                 self.EXCHANGE, self.EXCHANGE_TYPE)
+        self._channel.exchange_declare(
+            exchange=self.EXCHANGE, exchange_type=self.EXCHANGE_TYPE)
+        self._channel.queue_declare(
+            queue=self.QUEUE, durable=True, exclusive=False, auto_delete=False)
+        log.info('Declared queue %s ', self.QUEUE)
+
+        log.info('Initialisation complete')
+
+    def publish(self, message):
+        """
+        publishes message to the queue
+        """
+        log.debug('----------- Publishing messsage ---------------')
+        log.debug(json.dumps(message))
+        log.debug('------------------ END ------------------------')
         self._channel.basic_publish(exchange=self.EXCHANGE,
-                                    routing_key=self.ROUTING_KEY,
-                                    body=json.dumps(dict(message), ensure_ascii=False), 
+                                    routing_key='crawler_output.*',
+                                    body=json.dumps(
+                                        dict(message), ensure_ascii=False),
                                     properties=pika.BasicProperties(content_type='application/json',
-                                                         delivery_mode=1))
-    def disconnect(self): 
+                                                                    delivery_mode=1))
+
+    def disconnect(self):
+        """
+        Disconnects from the queue
+        """
         log.info('[Disconnect] Closing connection ')
         self._connection.close()
-    
-         
-    
