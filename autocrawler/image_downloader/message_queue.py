@@ -1,15 +1,12 @@
-import pika
-import os
+import os 
 import logging
-import json
 import sys
-import re
-# import hashlib
+import pika 
+import json 
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
 log = logging.getLogger(__name__)
-
 
 class MessageQueue(object):
     """
@@ -75,17 +72,10 @@ class MessageQueue(object):
             log.debug(message)
             log.debug('------------------ END ------------------------ \r\n')
 
-            payload = json.dumps(dict(message), ensure_ascii=False)
-  
-            # #add the checksum 
-            # md5 = hashlib.md5()
-            # md5.update(payload)
-            # # md5.update(repr(vehicle))
-            # payload["checksum"] = md5.hexdigest()
-
             self._channel.basic_publish(exchange=self.EXCHANGE,
                                         routing_key='crawler_output.*',
-                                        body=payload,
+                                        body=json.dumps(
+                                            dict(message), ensure_ascii=False),
                                         properties=pika.BasicProperties(content_type='application/json',
                                                                         delivery_mode=1))
         except TypeError as te:
@@ -97,3 +87,21 @@ class MessageQueue(object):
         """
         log.info('[Disconnect] Closing connection ')
         self._connection.close()
+
+    def on_message(self, channel, method_frame, header_frame, body):
+        """ Stub left here for testing """
+        
+        log.debug('----------- Received messsage ---------------')
+        log.debug(body)
+        log.debug('------------------ END ------------------------ \r\n')
+
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        log.info("Sending ack %s", method_frame.delivery_tag)
+    
+    def start_consumer(self, message_handler):
+        self._channel.basic_consume(message_handler, self.QUEUE)
+        try:
+            self._channel.start_consuming()
+        except KeyboardInterrupt:
+            self._channel.stop_consuming()
+            self.disconnect()

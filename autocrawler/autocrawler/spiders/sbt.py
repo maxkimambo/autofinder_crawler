@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import hashlib
+import json
 from scrapy.selector import Selector
 import copy
 from scrapy.linkextractors import LinkExtractor
@@ -72,7 +74,7 @@ class SbtSpider(scrapy.Spider):
         vehicle['vehicle_body'] = vd.get('body')
         vehicle['vehicle_mileage'] = vd.get('mileage')
         vehicle['vehicle_accessories'] = vd.get('accessories')
-
+        vehicle['internal_id'] = 'SBT-' + vd.get('id')
         vehicle = self.clean_up(vehicle)
 
         log.debug('Vehicle images found at {0}'.format(vd.get('images')))
@@ -88,9 +90,8 @@ class SbtSpider(scrapy.Spider):
         vehicle_images = image_selector(response)
         #TODO: deal with returning item instead of meta
         meta = response.meta['vehicle']
-
         vehicle = meta['data']
-        log.debug(vehicle)
+    
         log.debug('Getting photos for %s', vehicle.get('id'))
 
         photo_links = vehicle_images.get('images')

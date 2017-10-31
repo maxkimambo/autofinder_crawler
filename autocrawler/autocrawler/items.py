@@ -32,10 +32,14 @@ class AutocrawlerItem(scrapy.Item):
     vehicle_mileage = scrapy.Field()
     vehicle_accessories = scrapy.Field() 
     vehicle_thumbnails = scrapy.Field() 
-
+    internal_id = scrapy.Field()
+    checksum = scrapy.Field()
     #tracking scrapy.fields 
     url = scrapy.Field()
     project = scrapy.Field()
     spider  = scrapy.Field()
     server  = scrapy.Field()
     crawled_date = scrapy.Field() 
+
+    def __str__(self): 
+        return str(self.__dict__).encode(encoding='utf-8', errors='backslashreplace')
