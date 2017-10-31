@@ -39,4 +39,3 @@ class AutocrawlerItem(scrapy.Item):
     spider  = scrapy.Field()
     server  = scrapy.Field()
     crawled_date = scrapy.Field() 
-    pass

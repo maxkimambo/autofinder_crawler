@@ -3,6 +3,7 @@ import os
 import logging
 import json
 import sys
+import re
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
@@ -67,15 +68,20 @@ class MessageQueue(object):
         """
         publishes message to the queue
         """
-        log.debug('----------- Publishing messsage ---------------')
-        log.debug(json.dumps(message))
-        log.debug('------------------ END ------------------------')
-        self._channel.basic_publish(exchange=self.EXCHANGE,
-                                    routing_key='crawler_output.*',
-                                    body=json.dumps(
-                                        dict(message), ensure_ascii=False),
-                                    properties=pika.BasicProperties(content_type='application/json',
-                                                                    delivery_mode=1))
+        try:
+            
+            log.debug('----------- Publishing messsage ---------------')
+            log.debug(message)
+            log.debug('------------------ END ------------------------ \r\n')
+
+            self._channel.basic_publish(exchange=self.EXCHANGE,
+                                        routing_key='crawler_output.*',
+                                        body=json.dumps(
+                                            dict(message), ensure_ascii=False),
+                                        properties=pika.BasicProperties(content_type='application/json',
+                                                                        delivery_mode=1))
+        except TypeError as te:
+            log.error('Unserializable message found %s', message)
 
     def disconnect(self):
         """

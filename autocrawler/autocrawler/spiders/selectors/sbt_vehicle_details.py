@@ -1,10 +1,13 @@
 from scrapy.selector import Selector
 import logging 
-log = logging.getLogger()
+import sys
+
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
+log = logging.getLogger(__name__)
 
 class sbt_vehicle_details_selectors: 
     
-
     def __init__(self, response):
         self.sel = Selector(response=response) 
         self.vehicle = self.select_items()
@@ -15,7 +18,8 @@ class sbt_vehicle_details_selectors:
         vehicle['id'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[1]/text()').extract()
         vehicle['make'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/ul/li[2]/h1/text()').extract()
         vehicle['model'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[1]/td[2]/text()').extract()
-        vehicle['year'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[1]/text()').extract()
+        vehicle['year'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[2]/text()').extract()
+                                         #//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[2]/td[2]
         vehicle['engine'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[7]/td[1]/text()').extract()
         vehicle['transmission'] = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[3]/td[1]/text()').extract()
         vehicle['fuel']  = self.sel.xpath('//*[@id="contents_detail"]/div[3]/div[1]/div[2]/table[1]/tbody/tr[9]/td[1]/text()').extract()
@@ -43,9 +47,15 @@ class sbt_vehicle_details_selectors:
         photobox_url = photobox.css('a:first-child::attr(href)').extract()
        
         vehicle['images'] = photobox_url
-
-
         return vehicle; 
     
     def get(self, item):
-        return self.vehicle[item][0]
+            
+        try: 
+            result = self.vehicle[item][0]
+           
+            return result
+        except IndexError as err: 
+            log.error('Failed to get item: %s of vehicle id : %s', item, self.vehicle.get("id"))
+            result = '' # set to empty value
+            return result
