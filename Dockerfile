@@ -3,6 +3,6 @@ MAINTAINER Max Kimambo, max@kimambo.de
 
 RUN pip3 install -r requirements.txt
 
-VOLUME "/var/app"
+VOLUME "/app"
 
 CMD ["/bin/bash"]
