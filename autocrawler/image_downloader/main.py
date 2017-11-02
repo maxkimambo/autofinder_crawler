@@ -1,7 +1,9 @@
 from message_queue import MessageQueue
 import downloader as dwn 
 
-queue = MessageQueue()
+EXCHANGE = "crawler.vehicles"
+QUEUE = "crawler_queue"
+queue = MessageQueue(EXCHANGE, QUEUE)
 
 ## Starting consumer 
 queue.start_consumer(dwn.process_message) 

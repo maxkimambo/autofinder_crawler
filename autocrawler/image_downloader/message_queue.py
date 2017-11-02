@@ -1,23 +1,24 @@
-import os 
+import os
 import logging
 import sys
-import pika 
-import json 
+import pika
+import json
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
 log = logging.getLogger(__name__)
+
 
 class MessageQueue(object):
     """
     MessageQueue class connects and publishes messages to the broker 
         :param object: 
     """
-    EXCHANGE = os.getenv('EXCHANGE', 'crawler.vehicles')
-    QUEUE = os.getenv('QUEUE', 'crawler_queue')
-    EXCHANGE_TYPE = 'topic'
+    # EXCHANGE = os.getenv('EXCHANGE', 'crawler.vehicles')
+    # QUEUE = os.getenv('QUEUE', 'crawler_queue')
+    # EXCHANGE_TYPE = 'topic'
 
-    def __init__(self):
+    def __init__(self, exchange, queue,  exchange_type="topic", is_durable=True):
 
         self._connection = None
         self._channel = None
@@ -28,6 +29,10 @@ class MessageQueue(object):
         self._password = os.getenv('BROKER_PASSWORD', 'guest')
         self._broker_host = os.getenv('BROKER_HOST', 'guest')
         self._broker_port = os.getenv('BROKER_PORT', 5672)
+        self.EXCHANGE = exchange
+        self.EXCHANGE_TYPE = exchange_type
+        self.QUEUE = queue
+        self._is_durable = is_durable
 
         self.initialise()
 
@@ -38,6 +43,10 @@ class MessageQueue(object):
         url = 'amqp://{0}:{1}@{2}:{3}/%2F'.format(
             self._userId, self._password, self._broker_host, self._broker_port)
         return url
+
+    def get_channel(self):
+        """ Returns active channel """
+        return self._channel
 
     def initialise(self):
         """
@@ -57,23 +66,24 @@ class MessageQueue(object):
         self._channel.exchange_declare(
             exchange=self.EXCHANGE, exchange_type=self.EXCHANGE_TYPE)
         self._channel.queue_declare(
-            queue=self.QUEUE, durable=True, exclusive=False, auto_delete=False)
+            queue=self.QUEUE, durable=self._is_durable, exclusive=False, auto_delete=False)
         log.info('Declared queue %s ', self.QUEUE)
 
         log.info('Initialisation complete')
 
-    def publish(self, message):
+    def publish(self, key, message):
         """
         publishes message to the queue
+        key = 'crawler_output.*'
         """
         try:
-            
+
             log.debug('----------- Publishing messsage ---------------')
             log.debug(message)
             log.debug('------------------ END ------------------------ \r\n')
 
             self._channel.basic_publish(exchange=self.EXCHANGE,
-                                        routing_key='crawler_output.*',
+                                        routing_key=key,
                                         body=json.dumps(
                                             dict(message), ensure_ascii=False),
                                         properties=pika.BasicProperties(content_type='application/json',
@@ -90,14 +100,14 @@ class MessageQueue(object):
 
     def on_message(self, channel, method_frame, header_frame, body):
         """ Stub left here for testing """
-        
+
         log.debug('----------- Received messsage ---------------')
         log.debug(body)
         log.debug('------------------ END ------------------------ \r\n')
 
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         log.info("Sending ack %s", method_frame.delivery_tag)
-    
+
     def start_consumer(self, message_handler):
         self._channel.basic_consume(message_handler, self.QUEUE)
         try:

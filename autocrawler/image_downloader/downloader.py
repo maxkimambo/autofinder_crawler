@@ -4,6 +4,7 @@ import shutil
 import sys 
 import json 
 import os
+from message_queue import MessageQueue
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
@@ -28,12 +29,18 @@ def process_message(channel, method_frame, header_frame, body):
     msg = json.loads(message_string)
     
     if len(msg.get('vehicle_thumbnails')) > 0:
-        process_links(msg.get('vehicle_thumbnails'))
+        image_file_paths =  process_links(msg.get('vehicle_thumbnails'))
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-    log.info("Sending ack %s", method_frame.delivery_tag)
+        log.info("Sending ack %s", method_frame.delivery_tag)
+        # publish back on to the indexing queue 
+        msg.vehicle_images = image_file_paths
 
+def publish(message): 
+    q = MessageQueue()
+    q.publish(message)
 
 def process_links(url_list):
+    images = []
     for l in url_list:
         dirpath = '/tmp/'+ get_dir(l) + "/" 
         filepath = dirpath + get_filename(l)
@@ -43,7 +50,8 @@ def process_links(url_list):
         if not os.path.exists(dirpath): 
             os.makedirs(dirpath)
         log.info("Processing url: %s", l)
-        download(l, filepath)
+        images.append(download(l, filepath))
+    return images 
 
 def download(url, file_path):
     r = requests.get(url, stream=True)
@@ -52,3 +60,4 @@ def download(url, file_path):
             r.raw.decode_content = True
             shutil.copyfileobj(r.raw, f)
     log.info("Downloaded file %s", file_path)
+    return file_path
